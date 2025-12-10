@@ -1,0 +1,39 @@
+{
+  "name": "@al-ramy/monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Al-Ramy Blog - Monorepo for webapp and admin dashboard",
+  "scripts": {
+    "dev": "pnpm --parallel -r dev",
+    "dev:webapp": "pnpm --filter webapp dev",
+    "dev:admin": "pnpm --filter admin dev",
+    "build": "pnpm -r build",
+    "lint": "biome check .",
+    "lint:fix": "biome check --apply .",
+    "format": "biome format --write .",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "clean": "pnpm -r clean && rm -rf node_modules",
+    "db:generate": "pnpm --filter @al-ramy/database prisma:generate",
+    "db:migrate": "pnpm --filter @al-ramy/database prisma:migrate:dev",
+    "db:studio": "pnpm --filter @al-ramy/database prisma:studio",
+    "db:push": "pnpm --filter @al-ramy/database prisma:push",
+    "db:seed": "pnpm --filter @al-ramy/database db:seed",
+    "prepare": "husky install"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.10",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.15.0",
+  "lint-staged": {
+    "*.{ts,tsx,js,jsx}": ["biome check --apply --no-errors-on-unmatched"],
+    "*.{json,md}": ["biome format --write --no-errors-on-unmatched"]
+  }
+}

@@ -1,0 +1,9 @@
+# Prisma
+node_modules
+.env
+.env*.local
+!.env.example
+
+# Generated
+dist
+.prisma
