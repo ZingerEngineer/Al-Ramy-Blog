@@ -43,6 +43,8 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma Client
+        env:
+          DATABASE_URL: ${{ env.DATABASE_URL }}
         run: pnpm run db:generate
       - name: Run Biome check
         run: pnpm run lint
