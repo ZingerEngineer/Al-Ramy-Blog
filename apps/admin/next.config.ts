@@ -10,16 +10,6 @@ const nextConfig: NextConfig = {
     '@al-ramy/shadcn',
     '@al-ramy/hooks',
   ],
-  experimental: {
-    turbo: {
-      rules: {
-        '*.scss': {
-          loaders: ['sass-loader'],
-          as: '*.css',
-        },
-      },
-    },
-  },
 };
 
 export default nextConfig;
