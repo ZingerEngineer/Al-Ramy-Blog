@@ -1,0 +1,411 @@
+generator client {
+  provider = "prisma-client-js"
+  engineType = "library"
+}
+
+generator zod {
+  provider               = "prisma-zod-generator"
+  output                 = "../src/zod"
+  useMultipleFiles       = true
+  createInputTypes       = true
+  createModelTypes       = true
+  addInputTypeValidation = true
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  MODERATOR
+  USER
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  SCHEDULED
+  ARCHIVED
+}
+
+enum ModerationStatus {
+  PENDING
+  APPROVED
+  FLAGGED
+  REMOVED
+}
+
+enum ReactionType {
+  LIKE
+  LOVE
+  CELEBRATE
+  INSIGHTFUL
+  THINKING
+  FIRE
+}
+
+enum FollowStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  PUBLISH
+  UNPUBLISH
+  APPROVE
+  REJECT
+  FLAG
+  BAN
+  UNBAN
+}
+
+enum MediaType {
+  IMAGE
+  VIDEO
+  DOCUMENT
+  AUDIO
+}
+
+enum SharePlatform {
+  TWITTER
+  FACEBOOK
+  LINKEDIN
+  REDDIT
+  EMAIL
+  COPY_LINK
+  OTHER
+}
+
+model User {
+  id               String    @id @default(uuid())
+  email            String    @unique
+  password         String?
+  name             String?
+  username         String?   @unique
+  role             UserRole  @default(USER)
+  emailVerified    DateTime?
+  image            String?
+  twoFactorEnabled Boolean   @default(false)
+  twoFactorSecret  String?
+  isPrivate        Boolean   @default(false)
+  isBanned         Boolean   @default(false)
+  bannedAt         DateTime?
+  bannedReason     String?   @db.Text
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  profile       UserProfile?
+  accounts      OAuthAccount[]
+  refreshTokens RefreshToken[]
+  posts         Post[]
+  comments      Comment[]
+  reactions     Reaction[]
+  mediaFiles    MediaFile[]
+  following     Follow[]       @relation("UserFollowing")
+  followers     Follow[]       @relation("UserFollowers")
+  auditLogs     AuditLog[]
+  shares        Share[]
+
+  @@index([email])
+  @@index([username])
+  @@index([role])
+  @@index([isPrivate])
+  @@index([createdAt])
+  @@map("users")
+}
+
+model UserProfile {
+  id         String   @id @default(uuid())
+  userId     String   @unique
+  bio        String?  @db.Text
+  location   String?
+  website    String?
+  twitter    String?
+  github     String?
+  linkedin   String?
+  coverImage String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_profiles")
+}
+
+model OAuthAccount {
+  id                String    @id @default(uuid())
+  userId            String
+  provider          String
+  providerAccountId String
+  accessToken       String?   @db.Text
+  refreshToken      String?   @db.Text
+  expiresAt         DateTime?
+  tokenType         String?
+  scope             String?
+  idToken           String?   @db.Text
+  sessionState      String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@index([provider])
+  @@map("oauth_accounts")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  isRevoked Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+model Post {
+  id               String           @id @default(uuid())
+  title            String
+  slug             String           @unique
+  content          String           @db.Text
+  excerpt          String?          @db.Text
+  coverImage       String?
+  status           PostStatus       @default(DRAFT)
+  moderationStatus ModerationStatus @default(PENDING)
+  publishedAt      DateTime?
+  scheduledFor     DateTime?
+  viewCount        Int              @default(0)
+  authorId         String
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  author     User        @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments   Comment[]
+  reactions  Reaction[]
+  categories Category[]
+  tags       Tag[]
+  mediaFiles PostMedia[]
+  shares     Share[]
+
+  @@index([authorId])
+  @@index([status])
+  @@index([moderationStatus])
+  @@index([slug])
+  @@index([publishedAt])
+  @@index([createdAt])
+  @@index([status, publishedAt])
+  @@map("posts")
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?  @db.Text
+  coverImage  String?
+  parentId    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  posts    Post[]
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children Category[] @relation("CategoryTree")
+
+  @@index([slug])
+  @@index([parentId])
+  @@map("categories")
+}
+
+model Tag {
+  id         String   @id @default(uuid())
+  name       String   @unique
+  slug       String   @unique
+  usageCount Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  posts Post[]
+
+  @@index([slug])
+  @@index([usageCount])
+  @@map("tags")
+}
+
+model Comment {
+  id               String           @id @default(uuid())
+  content          String           @db.Text
+  postId           String
+  authorId         String
+  parentId         String?
+  moderationStatus ModerationStatus @default(PENDING)
+  isEdited         Boolean          @default(false)
+  editedAt         DateTime?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  post       Post           @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author     User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  parent     Comment?       @relation("CommentTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children   Comment[]      @relation("CommentTree")
+  reactions  Reaction[]
+  mediaFiles CommentMedia[]
+
+  @@index([postId])
+  @@index([authorId])
+  @@index([parentId])
+  @@index([moderationStatus])
+  @@index([postId, parentId])
+  @@index([createdAt])
+  @@map("comments")
+}
+
+model Reaction {
+  id        String       @id @default(uuid())
+  type      ReactionType
+  userId    String
+  postId    String?
+  commentId String?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post    Post?    @relation(fields: [postId], references: [id], onDelete: Cascade)
+  comment Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@unique([userId, commentId])
+  @@index([userId])
+  @@index([postId])
+  @@index([commentId])
+  @@index([type])
+  @@map("reactions")
+}
+
+model Follow {
+  id          String       @id @default(uuid())
+  followerId  String
+  followingId String
+  status      FollowStatus @default(ACCEPTED)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  follower  User @relation("UserFollowing", fields: [followerId], references: [id], onDelete: Cascade)
+  following User @relation("UserFollowers", fields: [followingId], references: [id], onDelete: Cascade)
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+  @@index([status])
+  @@index([followerId, status])
+  @@index([followingId, status])
+  @@map("follows")
+}
+
+model Share {
+  id        String        @id @default(uuid())
+  postId    String
+  userId    String?
+  platform  SharePlatform
+  createdAt DateTime      @default(now())
+
+  post Post  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([postId])
+  @@index([userId])
+  @@index([platform])
+  @@index([createdAt])
+  @@map("shares")
+}
+
+model MediaFile {
+  id           String    @id @default(uuid())
+  fileName     String
+  originalName String
+  fileUrl      String
+  fileSize     Int
+  mimeType     String
+  mediaType    MediaType
+  width        Int?
+  height       Int?
+  duration     Int?
+  uploadedById String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  uploadedBy   User           @relation(fields: [uploadedById], references: [id], onDelete: Cascade)
+  postMedia    PostMedia[]
+  commentMedia CommentMedia[]
+
+  @@index([uploadedById])
+  @@index([mediaType])
+  @@index([createdAt])
+  @@map("media_files")
+}
+
+model PostMedia {
+  id          String   @id @default(uuid())
+  postId      String
+  mediaFileId String
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  post      Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  mediaFile MediaFile @relation(fields: [mediaFileId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, mediaFileId])
+  @@index([postId])
+  @@index([mediaFileId])
+  @@map("post_media")
+}
+
+model CommentMedia {
+  id          String   @id @default(uuid())
+  commentId   String
+  mediaFileId String
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  comment   Comment   @relation(fields: [commentId], references: [id], onDelete: Cascade)
+  mediaFile MediaFile @relation(fields: [mediaFileId], references: [id], onDelete: Cascade)
+
+  @@unique([commentId, mediaFileId])
+  @@index([commentId])
+  @@index([mediaFileId])
+  @@map("comment_media")
+}
+
+model AuditLog {
+  id         String      @id @default(uuid())
+  userId     String
+  action     AuditAction
+  entityType String
+  entityId   String
+  changes    String?     @db.Text
+  reason     String?     @db.Text
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime    @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([action])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
