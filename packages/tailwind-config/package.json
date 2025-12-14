@@ -1,0 +1,13 @@
+{
+  "name": "@al-ramy/tailwind-config",
+  "version": "0.1.0",
+  "private": true,
+  "main": "base.js",
+  "exports": {
+    "./base": "./base.js",
+    "./tokens/*": "./tokens/*"
+  },
+  "peerDependencies": {
+    "tailwindcss": "^4.0.0"
+  }
+}
