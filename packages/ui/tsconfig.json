@@ -1,10 +1,12 @@
 {
-  "extends": "../../tsconfig.json",
+  "extends": "@workspace/typescript/react.json",
   "compilerOptions": {
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "jsx": "react-jsx"
+    "outDir": "dist",
+    "baseUrl": ".",
+    "paths": {
+      "@workspace/ui/*": ["./src/*"]
+    }
   },
-  "include": ["src/**/*"],
+  "include": ["src", "turbo", "."],
   "exclude": ["node_modules", "dist"]
 }

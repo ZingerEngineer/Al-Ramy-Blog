@@ -1,10 +1,10 @@
+'use client';
+import { Button } from '@workspace/ui/components/button';
+
 export default function HomePage() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Al-Ramy Blog</h1>
-        <p className="text-lg text-gray-600">A modern blog platform built with Next.js 16</p>
-      </div>
+    <main className="flex min-h-screen bg-gray-500 flex-col items-center justify-center p-24">
+      <Button variant="default">Welcome to Al-Ramy Blog Webapp</Button>
     </main>
   );
 }

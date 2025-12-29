@@ -1,12 +1,12 @@
 import 'dotenv/config';
 import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from '@prisma/client';
 import {
   AuditAction,
   FollowStatus,
   MediaType,
   ModerationStatus,
   PostStatus,
+  PrismaClient,
   ReactionType,
   SharePlatform,
   UserRole,
@@ -1065,9 +1065,7 @@ More content coming soon...`,
 }
 
 main()
-  .catch((e) => {
-    console.error('❌ Error seeding database:');
-    console.error(e);
+  .catch((_) => {
     process.exit(1);
   })
   .finally(async () => {

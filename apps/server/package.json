@@ -1,0 +1,25 @@
+{
+  "name": "server",
+  "version": "0.1.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./actions/*": "./src/actions/*.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc",
+    "clean": "rimraf dist"
+  },
+  "dependencies": {
+    "@workspace/database": "workspace:*",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@workspace/typescript": "workspace:*",
+    "@types/node": "^22.10.1",
+    "typescript": "^5.7.2"
+  }
+}
