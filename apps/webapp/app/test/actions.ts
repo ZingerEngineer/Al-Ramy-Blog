@@ -260,6 +260,41 @@ export async function uploadTestFile(): Promise<S3UploadResult> {
   }
 }
 
+export async function uploadFile(formData: FormData): Promise<S3UploadResult> {
+  const s3 = getS3Client();
+  const file = formData.get('file') as File | null;
+
+  if (!file) {
+    return { success: false, error: 'No file provided' };
+  }
+
+  const timestamp = Date.now();
+  const sanitizedName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+  const key = `uploads/${timestamp}-${sanitizedName}`;
+
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    const command = new PutObjectCommand({
+      Bucket: BUCKET_NAME,
+      Key: key,
+      Body: buffer,
+      ContentType: file.type || 'application/octet-stream',
+    });
+
+    await s3.send(command);
+    const url = `${getS3Endpoint()}/${BUCKET_NAME}/${key}`;
+
+    return { success: true, key, url };
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error',
+    };
+  }
+}
+
 export async function checkFileExists(key: string): Promise<boolean> {
   const s3 = getS3Client();
 
@@ -282,17 +317,18 @@ export async function listBucketFiles(): Promise<S3FileInfo[]> {
   try {
     const command = new ListObjectsV2Command({
       Bucket: BUCKET_NAME,
-      Prefix: 'test-files/',
-      MaxKeys: 20,
+      MaxKeys: 50,
     });
 
     const response = await s3.send(command);
 
-    return (response.Contents ?? []).map((obj) => ({
-      key: obj.Key ?? '',
-      size: obj.Size ?? 0,
-      lastModified: obj.LastModified?.toISOString() ?? '',
-    }));
+    return (response.Contents ?? [])
+      .map((obj) => ({
+        key: obj.Key ?? '',
+        size: obj.Size ?? 0,
+        lastModified: obj.LastModified?.toISOString() ?? '',
+      }))
+      .sort((a, b) => new Date(b.lastModified).getTime() - new Date(a.lastModified).getTime());
   } catch {
     return [];
   }

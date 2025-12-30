@@ -9,14 +9,16 @@ import {
   CardHeader,
   CardTitle,
 } from '@workspace/ui/components/card';
-import { useState } from 'react';
+import { Input } from '@workspace/ui/components/input';
+import { Label } from '@workspace/ui/components/label';
+import { useRef, useState } from 'react';
 import {
   getFileContent,
   listBucketFiles,
   type S3FileInfo,
   type S3TestResult,
   testS3Connection,
-  uploadTestFile,
+  uploadFile,
 } from '../actions';
 import { StatusBadge } from './status-badge';
 
@@ -25,10 +27,12 @@ export function S3TestCard() {
   const [result, setResult] = useState<S3TestResult | null>(null);
   const [files, setFiles] = useState<S3FileInfo[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<{
     key: string;
     content: string;
   } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function handleTestConnection() {
     setStatus('loading');
@@ -42,14 +46,30 @@ export function S3TestCard() {
     }
   }
 
-  async function handleUpload() {
+  async function handleFileUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
     setUploading(true);
-    const uploadResult = await uploadTestFile();
+    setUploadError(null);
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const uploadResult = await uploadFile(formData);
+
     if (uploadResult.success) {
       const fileList = await listBucketFiles();
       setFiles(fileList);
+    } else {
+      setUploadError(uploadResult.error ?? 'Upload failed');
     }
+
     setUploading(false);
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   }
 
   async function handleViewFile(key: string) {
@@ -96,12 +116,27 @@ export function S3TestCard() {
 
         {status === 'connected' && (
           <>
-            <div className="space-y-2">
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label htmlFor="file-upload" className="text-sm font-medium">
+                  Upload File
+                </Label>
+                <div className="flex gap-2">
+                  <Input
+                    ref={fileInputRef}
+                    id="file-upload"
+                    type="file"
+                    onChange={handleFileUpload}
+                    disabled={uploading}
+                    className="flex-1 cursor-pointer file:mr-3 file:cursor-pointer file:rounded file:border-0 file:bg-primary file:px-3 file:py-1 file:text-xs file:text-primary-foreground"
+                  />
+                </div>
+                {uploading && <p className="text-sm text-muted-foreground">Uploading...</p>}
+                {uploadError && <p className="text-sm text-red-600">Error: {uploadError}</p>}
+              </div>
+
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium">Files in bucket:</p>
-                <Button size="sm" variant="outline" onClick={handleUpload} disabled={uploading}>
-                  {uploading ? 'Uploading...' : 'Upload Test File'}
-                </Button>
               </div>
 
               {files.length > 0 ? (
