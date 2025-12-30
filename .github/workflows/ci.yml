@@ -44,7 +44,7 @@ jobs:
 
       - name: Generate Prisma Client
         env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          DATABASE_URL: ${{ secrets.DEV_DATABASE_URL }}
         run: pnpm run db:generate
       - name: Run Biome check
         run: pnpm run lint
@@ -89,6 +89,8 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Generate Prisma Client
+        env:
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
         run: pnpm run db:generate
 
       - name: Build all packages and apps
