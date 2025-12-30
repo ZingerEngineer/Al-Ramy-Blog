@@ -1,20 +1,17 @@
 {
+  "$schema": "https://json.schemastore.org/tsconfig",
   "compilerOptions": {
     "target": "ES2022",
-    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "lib": ["ES2022"],
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "resolveJsonModule": true,
     "allowJs": true,
     "checkJs": false,
-    "jsx": "preserve",
     "declaration": true,
     "declarationMap": true,
     "sourceMap": true,
-    "outDir": "./dist",
-    "rootDir": ".",
     "removeComments": true,
-    "noEmit": true,
     "importHelpers": true,
     "isolatedModules": true,
     "allowSyntheticDefaultImports": true,
@@ -34,13 +31,7 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedIndexedAccess": true,
     "skipLibCheck": true,
-    "incremental": true,
-    "paths": {
-      "@workspace/database": ["./packages/database/src"],
-      "@workspace/ui": ["./packages/ui/src"],
-      "@workspace/tailwind": ["./packages/tailwind"],
-      "@workspace/typescript": ["./packages/typescript_config"]
-    }
+    "incremental": true
   },
-  "exclude": ["node_modules", "dist", "build", ".next", "out", "coverage"]
+  "exclude": ["node_modules", "dist", "build", "coverage"]
 }

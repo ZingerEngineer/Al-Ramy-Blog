@@ -1,5 +1,5 @@
 {
-  "name": "@al-ramy/database",
+  "name": "@workspace/database",
   "version": "0.1.0",
   "private": true,
   "main": "./src/index.ts",
@@ -24,6 +24,7 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
+    "@workspace/typescript": "workspace:*",
     "@types/node": "^22.10.1",
     "prisma": "^7.0.0",
     "prisma-zod-generator": "^0.8.15",

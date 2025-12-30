@@ -1,52 +1,36 @@
 {
-  "name": "@al-ramy/monorepo",
+  "name": "@workspace/monorepo",
   "version": "0.1.0",
   "private": true,
   "description": "Al-Ramy Blog - Monorepo for webapp and admin dashboard",
   "scripts": {
-    "dev": "pnpm --parallel -r dev",
-    "dev:webapp": "pnpm --filter webapp dev",
-    "dev:admin": "pnpm --filter admin dev",
-    "build": "pnpm -r build",
+    "dev": "turbo dev",
+    "dev:webapp": "turbo dev --filter=webapp",
+    "dev:admin_dashboard": "turbo dev --filter=admin_dashboard",
+    "build": "turbo build",
     "lint": "biome check .",
-    "lint:fix": "biome check --apply .",
+    "lint:fix": "biome check --write .",
     "format": "biome format --write .",
-    "typecheck": "pnpm -r typecheck",
+    "typecheck": "turbo typecheck",
     "test": "pnpm -r test",
-    "clean": "pnpm -r clean && rimraf node_modules",
-    "db:generate": "pnpm --filter @al-ramy/database prisma:generate",
-    "db:migrate": "pnpm --filter @al-ramy/database prisma:migrate",
-    "db:studio": "pnpm --filter @al-ramy/database prisma:studio",
-    "db:push": "pnpm --filter @al-ramy/database prisma:push",
-    "db:seed": "pnpm --filter @al-ramy/database db:seed",
-    "dev:docker:up": "docker compose up -d",
-    "dev:docker:down": "docker compose down",
-    "dev:docker:logs": "docker compose logs -f",
-    "dev:docker:logs:postgres": "docker compose logs -f postgres",
-    "dev:docker:logs:redis": "docker compose logs -f redis",
-    "dev:docker:logs:localstack": "docker compose logs -f localstack",
-    "dev:docker:reset": "docker compose down -v && docker compose up -d",
-    "dev:docker:restart": "docker compose restart",
-    "dev:docker:restart:postgres": "docker compose restart postgres",
-    "dev:docker:restart:redis": "docker compose restart redis",
-    "dev:docker:restart:localstack": "docker compose restart localstack",
-    "dev:docker:status": "docker compose ps",
-    "dev:docker:s3": "echo 'LocalStack S3 endpoint: http://localhost:4566' && echo 'Use AWS CLI with --endpoint-url=http://localhost:4566'",
-    "dev:redis:cli": "docker exec -it alramy-blog-redis-dev redis-cli",
-    "dev:redis:ping": "docker exec -it alramy-blog-redis-dev redis-cli ping",
-    "dev:redis:info": "docker exec -it alramy-blog-redis-dev redis-cli info",
-    "dev:redis:monitor": "docker exec -it alramy-blog-redis-dev redis-cli monitor",
-    "dev:redis:keys": "docker exec -it alramy-blog-redis-dev redis-cli keys '*'",
-    "dev:postgres:cli": "docker exec -it alramy-blog-postgres-dev psql -U ${POSTGRES_USER:-ramy} -d ${POSTGRES_DB:-al_ramy_blog_postgres}",
-    "dev:postgres:backup": "docker exec -t alramy-blog-postgres-dev pg_dump -U ${POSTGRES_USER:-ramy} ${POSTGRES_DB:-al_ramy_blog_postgres} > backup_$(date +%Y%m%d_%H%M%S).sql",
-    "dev:postgres:restore": "cat backup.sql | docker exec -i alramy-blog-postgres-dev psql -U ${POSTGRES_USER:-ramy} -d ${POSTGRES_DB:-al_ramy_blog_postgres}",
-    "prepare": "husky install"
+    "clean": "turbo clean && rimraf node_modules .turbo",
+    "db:generate": "pnpm --filter @workspace/database prisma:generate",
+    "db:migrate": "pnpm --filter @workspace/database prisma:migrate",
+    "db:studio": "pnpm --filter @workspace/database prisma:studio",
+    "db:seed": "pnpm --filter @workspace/database db:seed",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "docker:reset": "docker compose down -v && docker compose up -d",
+    "docker:restart": "docker compose restart",
+    "docker:status": "docker compose ps",
+    "prepare": "husky"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.4",
+    "@biomejs/biome": "^2.3.1",
     "husky": "^9.1.7",
     "lint-staged": "^15.2.10",
     "rimraf": "^6.1.2",
+    "turbo": "^2.7.2",
     "typescript": "^5.7.2"
   },
   "engines": {
@@ -55,7 +39,11 @@
   },
   "packageManager": "pnpm@9.15.0",
   "lint-staged": {
-    "*.{ts,tsx,js,jsx}": ["biome check --apply --no-errors-on-unmatched"],
-    "*.{json,md}": ["biome format --write --no-errors-on-unmatched"]
+    "*.{ts,tsx,js,jsx}": [
+      "biome check --write --no-errors-on-unmatched"
+    ],
+    "*.{json,md}": [
+      "biome format --write --no-errors-on-unmatched"
+    ]
   }
 }
