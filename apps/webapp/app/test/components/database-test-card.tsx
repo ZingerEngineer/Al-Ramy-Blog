@@ -10,13 +10,8 @@ import {
   CardTitle,
 } from '@workspace/ui/components/card';
 import { useState } from 'react';
-import {
-  type DatabaseTestResult,
-  getSeededRecords,
-  type SeededRecord,
-  seedTestData,
-  testDatabaseConnection,
-} from '../actions';
+import type { DatabaseTestResult, SeededRecord } from '@/types/database';
+import { getSeededRecords, seedTestData, testDatabaseConnection } from '../actions';
 import { StatusBadge } from './status-badge';
 
 export function DatabaseTestCard() {
@@ -66,8 +61,21 @@ export function DatabaseTestCard() {
 
       <CardContent className="space-y-4">
         {result && (
-          <div className="rounded-lg bg-muted p-3 text-sm">
+          <div className="rounded-lg bg-muted p-3 text-sm space-y-2">
             <p>Latency: {result.latencyMs}ms</p>
+            <div className="border-t pt-2 mt-2">
+              <p className="text-xs font-medium text-muted-foreground mb-1">Credentials:</p>
+              <div className="grid grid-cols-2 gap-1 text-xs">
+                <span className="text-muted-foreground">User:</span>
+                <span className="font-mono">{result.credentials.user}</span>
+                <span className="text-muted-foreground">Host:</span>
+                <span className="font-mono">{result.credentials.host}</span>
+                <span className="text-muted-foreground">Port:</span>
+                <span className="font-mono">{result.credentials.port}</span>
+                <span className="text-muted-foreground">Database:</span>
+                <span className="font-mono">{result.credentials.database}</span>
+              </div>
+            </div>
             {result.error && <p className="text-red-600 mt-1">Error: {result.error}</p>}
           </div>
         )}

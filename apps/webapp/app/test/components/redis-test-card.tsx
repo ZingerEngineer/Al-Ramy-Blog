@@ -12,13 +12,8 @@ import {
 import { Input } from '@workspace/ui/components/input';
 import { Label } from '@workspace/ui/components/label';
 import { useCallback, useEffect, useState } from 'react';
-import {
-  checkRedisKey,
-  type RedisKeyResult,
-  type RedisTestResult,
-  setRedisTestKey,
-  testRedisConnection,
-} from '../actions';
+import type { RedisKeyResult, RedisSetKeyResult, RedisTestResult } from '@/types/redis';
+import { checkRedisKey, setRedisTestKey, testRedisConnection } from '../actions';
 import { StatusBadge } from './status-badge';
 
 export function RedisTestCard() {
@@ -26,6 +21,7 @@ export function RedisTestCard() {
   const [result, setResult] = useState<RedisTestResult | null>(null);
   const [ttl, setTtl] = useState('10');
   const [currentKey, setCurrentKey] = useState<string | null>(null);
+  const [keyResult, setKeyResult] = useState<RedisSetKeyResult | null>(null);
   const [keyStatus, setKeyStatus] = useState<RedisKeyResult | null>(null);
   const [settingKey, setSettingKey] = useState(false);
 
@@ -39,11 +35,12 @@ export function RedisTestCard() {
   async function handleSetKey() {
     setSettingKey(true);
     const setResult = await setRedisTestKey(Number(ttl));
+    setKeyResult(setResult);
     if (setResult.success) {
       setCurrentKey(setResult.key);
       // Immediately check key status
-      const keyResult = await checkRedisKey(setResult.key);
-      setKeyStatus(keyResult);
+      const keyStatusResult = await checkRedisKey(setResult.key);
+      setKeyStatus(keyStatusResult);
     }
     setSettingKey(false);
   }
@@ -83,8 +80,19 @@ export function RedisTestCard() {
 
       <CardContent className="space-y-4">
         {result && (
-          <div className="rounded-lg bg-muted p-3 text-sm">
+          <div className="rounded-lg bg-muted p-3 text-sm space-y-2">
             <p>Latency: {result.latencyMs}ms</p>
+            <div className="border-t pt-2 mt-2">
+              <p className="text-xs font-medium text-muted-foreground mb-1">Credentials:</p>
+              <div className="grid grid-cols-2 gap-1 text-xs">
+                <span className="text-muted-foreground">User:</span>
+                <span className="font-mono">{result.credentials.user}</span>
+                <span className="text-muted-foreground">Host:</span>
+                <span className="font-mono">{result.credentials.host}</span>
+                <span className="text-muted-foreground">Port:</span>
+                <span className="font-mono">{result.credentials.port}</span>
+              </div>
+            </div>
             {result.error && <p className="text-red-600 mt-1">Error: {result.error}</p>}
           </div>
         )}
@@ -123,6 +131,11 @@ export function RedisTestCard() {
                     </span>
                   )}
                 </div>
+                {keyResult && (
+                  <p className="text-xs text-muted-foreground">
+                    Issued by: <span className="font-mono">{keyResult.issuedBy}</span>
+                  </p>
+                )}
                 {keyStatus.value && (
                   <p className="text-xs text-muted-foreground">Value: {keyStatus.value}</p>
                 )}

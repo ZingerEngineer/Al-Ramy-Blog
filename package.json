@@ -14,10 +14,10 @@
     "typecheck": "turbo typecheck",
     "test": "pnpm -r test",
     "clean": "turbo clean && rimraf node_modules .turbo",
-    "db:generate": "pnpm --filter @workspace/database prisma:generate",
-    "db:migrate": "pnpm --filter @workspace/database prisma:migrate",
-    "db:studio": "pnpm --filter @workspace/database prisma:studio",
-    "db:seed": "pnpm --filter @workspace/database db:seed",
+    "db:generate": "dotenv -e .env -- pnpm --filter @workspace/database prisma:generate",
+    "db:migrate": "dotenv -e .env -- pnpm --filter @workspace/database prisma:migrate",
+    "db:studio": "dotenv -e .env -- pnpm --filter @workspace/database prisma:studio",
+    "db:seed": "dotenv -e .env -- pnpm --filter @workspace/database db:seed",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
     "docker:reset": "docker compose down -v && docker compose up -d",
@@ -45,5 +45,8 @@
     "*.{json,md}": [
       "biome format --write --no-errors-on-unmatched"
     ]
+  },
+  "dependencies": {
+    "dotenv-cli": "^11.0.0"
   }
 }
