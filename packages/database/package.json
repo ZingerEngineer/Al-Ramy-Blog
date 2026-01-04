@@ -8,12 +8,12 @@
     ".": "./src/index.ts"
   },
   "scripts": {
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
-    "prisma:migrate:deploy": "prisma migrate deploy",
-    "prisma:studio": "prisma studio",
-    "prisma:push": "prisma db push",
-    "db:seed": "tsx src/scripts/seed.ts",
+    "prisma:generate": "dotenv -e ../../.env -- prisma generate",
+    "prisma:migrate": "dotenv -e ../../.env -- prisma migrate dev",
+    "prisma:migrate:deploy": "dotenv -e ../../.env -- prisma migrate deploy",
+    "prisma:studio": "dotenv -e ../../.env -- prisma studio",
+    "prisma:push": "dotenv -e ../../.env -- prisma db push",
+    "db:seed": "dotenv -e ../../.env -- tsx src/scripts/seed.ts",
     "typecheck": "tsc --noEmit",
     "clean": "rimraf dist node_modules/.prisma"
   },

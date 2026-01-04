@@ -16,6 +16,8 @@
       "@/lib/*": ["./lib/*"],
       "@/styles/*": ["./styles/*"],
       "@/config/*": ["./config/*"],
+      "@/types": ["./types"],
+      "@/types/*": ["./types/*"],
       "@workspace/database": ["../../packages/database/src"],
       "@workspace/services": ["../../packages/services/src"],
       "@workspace/services/*": ["../../packages/services/src/*"],

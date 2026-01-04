@@ -21,10 +21,10 @@ function getRedisPort(configPort?: number): number {
 export function getTesterClient(config?: Partial<RedisConfig>): Redis {
   if (!testerClient) {
     testerClient = new Redis({
-      host: config?.host ?? process.env.REDIS_HOST ?? 'localhost',
+      host: config?.host ?? process.env.REDIS_HOST,
       port: getRedisPort(config?.port),
-      username: 'tester',
-      password: config?.password ?? process.env.REDIS_PASSWORD ?? '',
+      username: config?.username ?? process.env.REDIS_TESTER,
+      password: config?.password ?? process.env.REDIS_TESTER_PASSWORD,
       lazyConnect: true,
       maxRetriesPerRequest: 3,
       retryStrategy: (times) => {
@@ -43,10 +43,10 @@ export function getTesterClient(config?: Partial<RedisConfig>): Redis {
 export function getRamyClient(config?: Partial<RedisConfig>): Redis {
   if (!ramyClient) {
     ramyClient = new Redis({
-      host: config?.host ?? process.env.REDIS_HOST ?? 'localhost',
+      host: config?.host ?? process.env.REDIS_HOST,
       port: getRedisPort(config?.port),
-      username: config?.username ?? process.env.REDIS_USER ?? 'ramy',
-      password: config?.password ?? process.env.REDIS_PASSWORD ?? '',
+      username: config?.username ?? process.env.REDIS_USER,
+      password: config?.password ?? process.env.REDIS_PASSWORD,
       lazyConnect: true,
       maxRetriesPerRequest: 3,
       retryStrategy: (times) => {
