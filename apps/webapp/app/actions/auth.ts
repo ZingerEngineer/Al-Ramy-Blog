@@ -1,10 +1,9 @@
 'use server';
 
-import { prisma } from '@workspace/database';
-import bcrypt from 'bcryptjs';
-import { AuthError } from 'next-auth';
+import { headers } from 'next/headers';
+import { redirect } from 'next/navigation';
 import { z } from 'zod';
-import { signIn } from '@/auth';
+import { auth } from '@/lib/auth';
 
 const registerSchema = z
   .object({
@@ -55,11 +54,29 @@ export async function registerUser(
   const { name, email, password } = validatedFields.data;
 
   try {
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
+    // Use Better Auth server-side API for registration
+    const response = await auth.api.signUpEmail({
+      body: {
+        name,
+        email,
+        password,
+      },
     });
 
-    if (existingUser) {
+    if (!response) {
+      return {
+        success: false,
+        message: 'Registration failed',
+      };
+    }
+
+    return {
+      success: true,
+      message: 'Account created successfully! You can now sign in.',
+    };
+  } catch (error) {
+    // Check for duplicate email error
+    if (error instanceof Error && error.message.includes('already exists')) {
       return {
         success: false,
         errors: {
@@ -68,23 +85,6 @@ export async function registerUser(
       };
     }
 
-    const hashedPassword = await bcrypt.hash(password, 12);
-
-    await prisma.user.create({
-      data: {
-        name,
-        email,
-        password: hashedPassword,
-        role: 'USER',
-      },
-    });
-
-    return {
-      success: true,
-      message: 'Account created successfully! You can now sign in.',
-    };
-  } catch (error) {
-    console.error('Registration error:', error);
     return {
       success: false,
       message: 'Something went wrong. Please try again.',
@@ -96,26 +96,35 @@ export async function signInWithCredentials(
   _prevState: { error?: string } | undefined,
   formData: FormData,
 ): Promise<{ error?: string } | undefined> {
+  const email = formData.get('email') as string;
+  const password = formData.get('password') as string;
+
   try {
-    await signIn('credentials', {
-      email: formData.get('email'),
-      password: formData.get('password'),
-      redirectTo: '/dashboard',
+    const response = await auth.api.signInEmail({
+      body: {
+        email,
+        password,
+      },
+      headers: await headers(),
     });
-    return undefined;
-  } catch (error) {
-    if (error instanceof AuthError) {
-      switch (error.type) {
-        case 'CredentialsSignin':
-          return { error: 'Invalid email or password' };
-        default:
-          return { error: 'Something went wrong' };
-      }
+
+    if (!response) {
+      return { error: 'Invalid email or password' };
     }
-    throw error;
+
+    // Redirect on success
+    redirect('/home');
+  } catch (_error) {
+    return { error: 'Invalid email or password' };
   }
 }
 
-export async function signInWithProvider(provider: string) {
-  await signIn(provider, { redirectTo: '/dashboard' });
+export async function signOutAction() {
+  try {
+    await auth.api.signOut({
+      headers: await headers(),
+    });
+  } catch (_error) {
+    redirect('/login');
+  }
 }
