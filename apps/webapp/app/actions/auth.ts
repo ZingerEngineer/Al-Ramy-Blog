@@ -99,6 +99,8 @@ export async function signInWithCredentials(
   const email = formData.get('email') as string;
   const password = formData.get('password') as string;
 
+  let success = false;
+
   try {
     const response = await auth.api.signInEmail({
       body: {
@@ -112,10 +114,14 @@ export async function signInWithCredentials(
       return { error: 'Invalid email or password' };
     }
 
-    // Redirect on success
-    redirect('/home');
-  } catch (_error) {
+    success = true;
+  } catch {
     return { error: 'Invalid email or password' };
+  }
+
+  // ✅ Outside try/catch
+  if (success) {
+    redirect('/home');
   }
 }
 
@@ -125,6 +131,6 @@ export async function signOutAction() {
       headers: await headers(),
     });
   } catch (_error) {
-    redirect('/login');
+    console.error('Sign-out failed');
   }
 }

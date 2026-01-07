@@ -1,6 +1,8 @@
 import { prisma } from '@workspace/database';
+import bcrypt from 'bcryptjs';
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
+import { nextCookies } from 'better-auth/next-js';
 
 export const auth = betterAuth({
   // Secret for encryption and hash generation
@@ -16,9 +18,18 @@ export const auth = betterAuth({
     requireEmailVerification: false,
     minPasswordLength: 8,
     maxPasswordLength: 128,
+    // Use bcrypt for compatibility with existing passwords
+    password: {
+      hash: async (password) => {
+        return await bcrypt.hash(password, 12);
+      },
+      verify: async ({ hash, password }) => {
+        return await bcrypt.compare(password, hash);
+      },
+    },
   },
 
-  // Social providers (Facebook and LinkedIn removed per migration plan)
+  // Social providers
   socialProviders: {
     google: {
       clientId: process.env.AUTH_GOOGLE_ID!,
@@ -32,6 +43,10 @@ export const auth = betterAuth({
       clientId: process.env.AUTH_TWITTER_ID!,
       clientSecret: process.env.AUTH_TWITTER_SECRET!,
     },
+    linkedin: {
+      clientId: process.env.AUTH_LINKEDIN_ID!,
+      clientSecret: process.env.AUTH_LINKEDIN_SECRET!,
+    },
   },
 
   // Session configuration
@@ -41,6 +56,14 @@ export const auth = betterAuth({
     cookieCache: {
       enabled: true,
       maxAge: 60 * 5, // 5 minutes
+    },
+  },
+
+  // Account linking configuration
+  account: {
+    accountLinking: {
+      enabled: true,
+      trustedProviders: ['google', 'github', 'twitter', 'linkedin'],
     },
   },
 
@@ -85,6 +108,7 @@ export const auth = betterAuth({
 
   // Trust host in production
   trustedOrigins: [process.env.BETTER_AUTH_URL || process.env.AUTH_URL || 'http://localhost:3000'],
+  plugins: [nextCookies()],
 });
 
 // Export types for use throughout the app
