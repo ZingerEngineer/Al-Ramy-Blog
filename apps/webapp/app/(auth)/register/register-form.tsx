@@ -1,10 +1,24 @@
 'use client';
 
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@workspace/ui/components/button';
+import {
+  Field,
+  FieldDescription,
+  FieldError,
+  FieldGroup,
+  FieldLabel,
+} from '@workspace/ui/components/field';
 import { Input } from '@workspace/ui/components/input';
-import { Label } from '@workspace/ui/components/label';
-import { useActionState } from 'react';
-import { type RegisterFormState, registerUser } from '@/app/actions/auth';
+import { useActionState, useEffect } from 'react';
+import { Controller, useForm } from 'react-hook-form';
+import { registerUser } from '@/app/actions/auth';
+import { reportAuthError } from '@/lib/client/error-reporter';
+import {
+  type RegisterFormData,
+  type RegisterFormState,
+  registerSchema,
+} from '@/lib/validations/auth';
 
 const initialState: RegisterFormState = {
   success: false,
@@ -12,6 +26,50 @@ const initialState: RegisterFormState = {
 
 export function RegisterForm() {
   const [state, formAction, isPending] = useActionState(registerUser, initialState);
+
+  const form = useForm<RegisterFormData>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      name: '',
+      email: '',
+      password: '',
+      confirmPassword: '',
+    },
+  });
+
+  // Sync server errors with form state
+  useEffect(() => {
+    if (state?.errors) {
+      if (state.errors.name) {
+        form.setError('name', { message: state.errors.name[0] });
+      }
+      if (state.errors.email) {
+        form.setError('email', { message: state.errors.email[0] });
+      }
+      if (state.errors.password) {
+        form.setError('password', { message: state.errors.password[0] });
+      }
+      if (state.errors.confirmPassword) {
+        form.setError('confirmPassword', { message: state.errors.confirmPassword[0] });
+      }
+    }
+  }, [state?.errors, form]);
+
+  // Handle form errors
+  useEffect(() => {
+    const errors = form.formState.errors;
+    if (Object.keys(errors).length > 0) {
+      // Report validation errors to server for analytics
+      const errorMessages = Object.entries(errors)
+        .map(([field, error]) => `${field}: ${error.message}`)
+        .join(', ');
+
+      // Only report if it's not a simple validation error
+      if (form.formState.submitCount > 0) {
+        reportAuthError(new Error(`Registration validation failed: ${errorMessages}`), 'register');
+      }
+    }
+  }, [form.formState.errors, form.formState.submitCount]);
 
   if (state.success) {
     return (
@@ -32,61 +90,89 @@ export function RegisterForm() {
         </div>
       )}
 
-      <div className="space-y-2">
-        <Label htmlFor="name">Name</Label>
-        <Input
-          id="name"
+      <FieldGroup>
+        <Controller
           name="name"
-          type="text"
-          placeholder="John Doe"
-          required
-          aria-invalid={!!state.errors?.name}
+          control={form.control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor="register-name">Name</FieldLabel>
+              <Input
+                {...field}
+                id="register-name"
+                type="text"
+                placeholder="John Doe"
+                aria-invalid={fieldState.invalid}
+                disabled={isPending}
+              />
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
         />
-        {state.errors?.name && <p className="text-sm text-destructive">{state.errors.name[0]}</p>}
-      </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="email">Email</Label>
-        <Input
-          id="email"
+        <Controller
           name="email"
-          type="email"
-          placeholder="you@example.com"
-          required
-          aria-invalid={!!state.errors?.email}
+          control={form.control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor="register-email">Email</FieldLabel>
+              <Input
+                {...field}
+                id="register-email"
+                type="email"
+                placeholder="you@example.com"
+                aria-invalid={fieldState.invalid}
+                autoComplete="email"
+                disabled={isPending}
+              />
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
         />
-        {state.errors?.email && <p className="text-sm text-destructive">{state.errors.email[0]}</p>}
-      </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="password">Password</Label>
-        <Input
-          id="password"
+        <Controller
           name="password"
-          type="password"
-          placeholder="********"
-          required
-          aria-invalid={!!state.errors?.password}
+          control={form.control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor="register-password">Password</FieldLabel>
+              <Input
+                {...field}
+                id="register-password"
+                type="password"
+                placeholder="********"
+                aria-invalid={fieldState.invalid}
+                autoComplete="new-password"
+                disabled={isPending}
+              />
+              <FieldDescription>
+                Must be at least 8 characters with uppercase, lowercase, and number
+              </FieldDescription>
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
         />
-        {state.errors?.password && (
-          <p className="text-sm text-destructive">{state.errors.password[0]}</p>
-        )}
-      </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="confirmPassword">Confirm Password</Label>
-        <Input
-          id="confirmPassword"
+        <Controller
           name="confirmPassword"
-          type="password"
-          placeholder="********"
-          required
-          aria-invalid={!!state.errors?.confirmPassword}
+          control={form.control}
+          render={({ field, fieldState }) => (
+            <Field data-invalid={fieldState.invalid}>
+              <FieldLabel htmlFor="register-confirm-password">Confirm Password</FieldLabel>
+              <Input
+                {...field}
+                id="register-confirm-password"
+                type="password"
+                placeholder="********"
+                aria-invalid={fieldState.invalid}
+                autoComplete="new-password"
+                disabled={isPending}
+              />
+              {fieldState.invalid && <FieldError errors={[fieldState.error]} />}
+            </Field>
+          )}
         />
-        {state.errors?.confirmPassword && (
-          <p className="text-sm text-destructive">{state.errors.confirmPassword[0]}</p>
-        )}
-      </div>
+      </FieldGroup>
 
       <Button type="submit" className="w-full" disabled={isPending}>
         {isPending ? 'Creating account...' : 'Create account'}

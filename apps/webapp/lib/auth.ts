@@ -1,12 +1,23 @@
 import { prisma } from '@workspace/database';
+import { requireEnv, requireEnvGroup, requireEnvOneOf } from '@workspace/utilities/env';
 import bcrypt from 'bcryptjs';
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { nextCookies } from 'better-auth/next-js';
 
+// Validate required environment variables
+const betterAuthSecret = requireEnv('BETTER_AUTH_SECRET');
+
+const googleCreds = requireEnvGroup(['AUTH_GOOGLE_ID', 'AUTH_GOOGLE_SECRET']);
+const githubCreds = requireEnvGroup(['AUTH_GITHUB_ID', 'AUTH_GITHUB_SECRET']);
+const twitterCreds = requireEnvGroup(['AUTH_TWITTER_ID', 'AUTH_TWITTER_SECRET']);
+const linkedinCreds = requireEnvGroup(['AUTH_LINKEDIN_ID', 'AUTH_LINKEDIN_SECRET']);
+
+const baseURL = requireEnvOneOf(['BETTER_AUTH_URL', 'AUTH_URL']);
+
 export const auth = betterAuth({
   // Secret for encryption and hash generation
-  secret: process.env.BETTER_AUTH_SECRET,
+  secret: betterAuthSecret,
 
   database: prismaAdapter(prisma, {
     provider: 'postgresql',
@@ -32,20 +43,20 @@ export const auth = betterAuth({
   // Social providers
   socialProviders: {
     google: {
-      clientId: process.env.AUTH_GOOGLE_ID!,
-      clientSecret: process.env.AUTH_GOOGLE_SECRET!,
+      clientId: googleCreds.AUTH_GOOGLE_ID as string,
+      clientSecret: googleCreds.AUTH_GOOGLE_SECRET as string,
     },
     github: {
-      clientId: process.env.AUTH_GITHUB_ID!,
-      clientSecret: process.env.AUTH_GITHUB_SECRET!,
+      clientId: githubCreds.AUTH_GITHUB_ID as string,
+      clientSecret: githubCreds.AUTH_GITHUB_SECRET as string,
     },
     twitter: {
-      clientId: process.env.AUTH_TWITTER_ID!,
-      clientSecret: process.env.AUTH_TWITTER_SECRET!,
+      clientId: twitterCreds.AUTH_TWITTER_ID as string,
+      clientSecret: twitterCreds.AUTH_TWITTER_SECRET as string,
     },
     linkedin: {
-      clientId: process.env.AUTH_LINKEDIN_ID!,
-      clientSecret: process.env.AUTH_LINKEDIN_SECRET!,
+      clientId: linkedinCreds.AUTH_LINKEDIN_ID as string,
+      clientSecret: linkedinCreds.AUTH_LINKEDIN_SECRET as string,
     },
   },
 
@@ -104,10 +115,10 @@ export const auth = betterAuth({
   },
 
   // Base URL
-  baseURL: process.env.BETTER_AUTH_URL || process.env.AUTH_URL || 'http://localhost:3000',
+  baseURL,
 
   // Trust host in production
-  trustedOrigins: [process.env.BETTER_AUTH_URL || process.env.AUTH_URL || 'http://localhost:3000'],
+  trustedOrigins: [baseURL],
   plugins: [nextCookies()],
 });
 

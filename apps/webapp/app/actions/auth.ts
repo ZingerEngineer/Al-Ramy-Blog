@@ -1,37 +1,16 @@
 'use server';
 
+import { revalidatePath } from 'next/cache';
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
-import { z } from 'zod';
 import { auth } from '@/lib/auth';
-
-const registerSchema = z
-  .object({
-    name: z.string().min(2, 'Name must be at least 2 characters'),
-    email: z.string().email('Invalid email address'),
-    password: z
-      .string()
-      .min(8, 'Password must be at least 8 characters')
-      .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-      .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-      .regex(/[0-9]/, 'Password must contain at least one number'),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords don't match",
-    path: ['confirmPassword'],
-  });
-
-export type RegisterFormState = {
-  success: boolean;
-  message?: string;
-  errors?: {
-    name?: string[];
-    email?: string[];
-    password?: string[];
-    confirmPassword?: string[];
-  };
-};
+import { authLogger } from '@/lib/logger';
+import {
+  type LoginFormState,
+  loginSchema,
+  type RegisterFormState,
+  registerSchema,
+} from '@/lib/validations/auth';
 
 export async function registerUser(
   _prevState: RegisterFormState,
@@ -53,6 +32,8 @@ export async function registerUser(
 
   const { name, email, password } = validatedFields.data;
 
+  authLogger.info({ email, name }, 'Registration attempt started');
+
   try {
     // Use Better Auth server-side API for registration
     const response = await auth.api.signUpEmail({
@@ -64,11 +45,14 @@ export async function registerUser(
     });
 
     if (!response) {
+      authLogger.warn({ email }, 'Registration failed - no response from auth API');
       return {
         success: false,
         message: 'Registration failed',
       };
     }
+
+    authLogger.info({ email, userId: response.user?.id }, 'User registered successfully');
 
     return {
       success: true,
@@ -77,6 +61,7 @@ export async function registerUser(
   } catch (error) {
     // Check for duplicate email error
     if (error instanceof Error && error.message.includes('already exists')) {
+      authLogger.warn({ email }, 'Registration failed - email already exists');
       return {
         success: false,
         errors: {
@@ -84,6 +69,8 @@ export async function registerUser(
         },
       };
     }
+
+    authLogger.error({ email, err: error }, 'Registration failed with error');
 
     return {
       success: false,
@@ -93,13 +80,25 @@ export async function registerUser(
 }
 
 export async function signInWithCredentials(
-  _prevState: { error?: string } | undefined,
+  _prevState: LoginFormState | undefined,
   formData: FormData,
-): Promise<{ error?: string } | undefined> {
-  const email = formData.get('email') as string;
-  const password = formData.get('password') as string;
+): Promise<LoginFormState | undefined> {
+  // Validate inputs
+  const validatedFields = loginSchema.safeParse({
+    email: formData.get('email'),
+    password: formData.get('password'),
+  });
 
+  if (!validatedFields.success) {
+    return {
+      errors: validatedFields.error.flatten().fieldErrors,
+    };
+  }
+
+  const { email, password } = validatedFields.data;
   let success = false;
+
+  authLogger.info({ email }, 'Login attempt started');
 
   try {
     const response = await auth.api.signInEmail({
@@ -111,26 +110,39 @@ export async function signInWithCredentials(
     });
 
     if (!response) {
+      authLogger.warn({ email }, 'Login failed - invalid credentials');
       return { error: 'Invalid email or password' };
     }
 
+    authLogger.info({ email, userId: response.user?.id }, 'User logged in successfully');
     success = true;
-  } catch {
+  } catch (error) {
+    authLogger.error({ email, err: error }, 'Login failed with error');
     return { error: 'Invalid email or password' };
   }
 
-  // ✅ Outside try/catch
+  // ✅ Outside try/catch - invalidate cache before redirect
   if (success) {
+    // Invalidate cache to ensure session is fresh
+    revalidatePath('/home', 'page');
+    revalidatePath('/', 'layout');
+
+    authLogger.debug({ email }, 'Cache invalidated, redirecting to /home');
     redirect('/home');
   }
+
+  return undefined;
 }
 
 export async function signOutAction() {
+  authLogger.info('Sign-out attempt started');
+
   try {
     await auth.api.signOut({
       headers: await headers(),
     });
-  } catch (_error) {
-    console.error('Sign-out failed');
+    authLogger.info('User signed out successfully');
+  } catch (error) {
+    authLogger.error({ err: error }, 'Sign-out failed');
   }
 }

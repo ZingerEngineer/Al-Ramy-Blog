@@ -1,5 +1,6 @@
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
+import { requireEnv } from '@workspace/utilities/env';
 
 export type { Category, Comment, MediaFile, Post, Tag, User } from '@prisma/client';
 // Re-export specific items instead of `export *` to avoid Next.js bundler issues
@@ -11,8 +12,10 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 export function createPrismaClient(): PrismaClient {
+  const databaseUrl = requireEnv('DATABASE_URL');
+
   const adapter = new PrismaPg({
-    connectionString: process.env.DATABASE_URL || '',
+    connectionString: databaseUrl,
   });
 
   return new PrismaClient({

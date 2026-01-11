@@ -34,11 +34,27 @@ export function RedisTestCard() {
 
   async function handleSetKey() {
     setSettingKey(true);
-    const setResult = await setRedisTestKey(Number(ttl));
+
+    // Validate and parse TTL
+    const ttlValue = Number(ttl);
+    if (Number.isNaN(ttlValue) || ttlValue < 1 || ttlValue > 30) {
+      setKeyResult({
+        success: false,
+        key: '',
+        issuedBy: '',
+        error: 'TTL must be a number between 1 and 30',
+      });
+      setSettingKey(false);
+      return;
+    }
+
+    const setResult = await setRedisTestKey(ttlValue);
     setKeyResult(setResult);
     if (setResult.success) {
       setCurrentKey(setResult.key);
-      // Immediately check key status
+      // Wait a tiny bit to ensure Redis has processed the write
+      await new Promise((resolve) => setTimeout(resolve, 10));
+      // Check key status
       const keyStatusResult = await checkRedisKey(setResult.key);
       setKeyStatus(keyStatusResult);
     }
@@ -117,6 +133,12 @@ export function RedisTestCard() {
               </Button>
             </div>
 
+            {keyResult && !keyResult.success && (
+              <div className="rounded-lg border border-red-200 bg-red-50 p-3">
+                <p className="text-sm text-red-600">Error: {keyResult.error}</p>
+              </div>
+            )}
+
             {currentKey && keyStatus && (
               <div className="rounded-lg border p-3 space-y-2">
                 <p className="text-sm font-mono break-all">{currentKey}</p>
@@ -131,7 +153,7 @@ export function RedisTestCard() {
                     </span>
                   )}
                 </div>
-                {keyResult && (
+                {keyResult?.success && (
                   <p className="text-xs text-muted-foreground">
                     Issued by: <span className="font-mono">{keyResult.issuedBy}</span>
                   </p>

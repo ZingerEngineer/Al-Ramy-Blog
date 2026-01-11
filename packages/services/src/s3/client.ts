@@ -1,4 +1,5 @@
 import { S3Client } from '@aws-sdk/client-s3';
+import { requireEnv } from '@workspace/utilities/env';
 import type { S3Config } from './types';
 
 let s3Client: S3Client | null = null;
@@ -17,13 +18,18 @@ export function getS3Client(config?: Partial<S3Config>): S3Client {
       s3Client.destroy();
     }
 
+    // Validate required environment variables if config not provided
+    const region = config?.region ?? requireEnv('AWS_DEFAULT_REGION');
+    const accessKeyId = config?.accessKeyId ?? requireEnv('AWS_ACCESS_KEY_ID');
+    const secretAccessKey = config?.secretAccessKey ?? requireEnv('AWS_SECRET_ACCESS_KEY');
+
     s3Client = new S3Client({
-      region: config?.region ?? process.env.AWS_DEFAULT_REGION ?? 'us-east-1',
+      region,
       endpoint: config?.endpoint ?? getS3Endpoint(),
       forcePathStyle: config?.forcePathStyle ?? true,
       credentials: {
-        accessKeyId: config?.accessKeyId ?? process.env.AWS_ACCESS_KEY_ID ?? 'test',
-        secretAccessKey: config?.secretAccessKey ?? process.env.AWS_SECRET_ACCESS_KEY ?? 'test',
+        accessKeyId,
+        secretAccessKey,
       },
       maxAttempts: 3,
     });
@@ -39,7 +45,7 @@ export function getS3Client(config?: Partial<S3Config>): S3Client {
  * Using 127.0.0.1 instead of localhost to force IPv4 (LocalStack doesn't support IPv6)
  */
 export function getS3Endpoint(): string {
-  return process.env.LOCALSTACK_ENDPOINT ?? 'http://127.0.0.1:4566';
+  return requireEnv('LOCALSTACK_ENDPOINT');
 }
 
 /**

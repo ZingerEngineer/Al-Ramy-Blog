@@ -1,9 +1,24 @@
 import 'dotenv/config';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
+import { requireEnv } from '@workspace/utilities/env';
+import pino from 'pino';
+
+const logger = pino({
+  transport: {
+    target: 'pino-pretty',
+    options: {
+      colorize: true,
+      translateTime: 'HH:MM:ss Z',
+      ignore: 'pid,hostname',
+    },
+  },
+});
+
+const databaseUrl = requireEnv('DATABASE_URL');
 
 const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL || '',
+  connectionString: databaseUrl,
 });
 
 const prisma = new PrismaClient({
@@ -16,7 +31,7 @@ const prisma = new PrismaClient({
  * Tables are deleted in order to respect foreign key constraints.
  */
 export async function flush() {
-  console.log('Flushing database...\n');
+  logger.info('Flushing database...\n');
 
   // Delete in reverse order of dependencies
   const deletions = [
@@ -41,17 +56,17 @@ export async function flush() {
 
   for (const { name, fn } of deletions) {
     const result = await fn();
-    console.log(`  Deleted ${result.count} ${name} records`);
+    logger.info(`  Deleted ${result.count} ${name} records`);
   }
 
-  console.log('\nDatabase flushed successfully!');
+  logger.info('\nDatabase flushed successfully!');
 }
 
 // Run if executed directly
 if (require.main === module) {
   flush()
     .catch((error) => {
-      console.error('Flush failed:', error);
+      logger.error({ err: error }, 'Flush failed:');
       process.exit(1);
     })
     .finally(async () => {

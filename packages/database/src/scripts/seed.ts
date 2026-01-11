@@ -1,5 +1,17 @@
+import pino from 'pino';
 import { createPrismaClient } from '../index';
 import { flush } from './flush';
+
+const logger = pino({
+  transport: {
+    target: 'pino-pretty',
+    options: {
+      colorize: true,
+      translateTime: 'HH:MM:ss Z',
+      ignore: 'pid,hostname',
+    },
+  },
+});
 
 const prisma = createPrismaClient();
 
@@ -212,12 +224,12 @@ async function main() {
     },
   });
 
-  console.log('✅ Database seeded successfully');
+  logger.info('✅ Database seeded successfully');
 }
 
 main()
   .catch((e) => {
-    console.error('❌ Seeding failed', e);
+    logger.error({ err: e }, '❌ Seeding failed');
     process.exit(1);
   })
   .finally(async () => {
