@@ -1,11 +1,22 @@
-import { requireEnv } from '@workspace/utilities/env';
 import { createAuthClient } from 'better-auth/react';
 
-// Validate required environment variables
-const appUrl = requireEnv('NEXT_PUBLIC_APP_URL');
+/**
+ * Validates and returns the app URL
+ * For NEXT_PUBLIC_* variables, validation happens at runtime in the browser
+ * where Next.js guarantees the variable is available
+ */
+function getAppUrl(): string {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
+
+  if (!appUrl) {
+    throw new Error('NEXT_PUBLIC_APP_URL environment variable is required but not provided');
+  }
+
+  return appUrl;
+}
 
 export const authClient = createAuthClient({
-  baseURL: appUrl,
+  baseURL: getAppUrl(),
 });
 
 // Export hooks and methods
