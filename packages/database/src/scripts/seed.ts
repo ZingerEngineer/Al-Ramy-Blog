@@ -16,7 +16,7 @@ const logger = pino({
 const prisma = createPrismaClient();
 
 async function main() {
-  flush();
+  await flush();
   /**
    * USERS
    */
