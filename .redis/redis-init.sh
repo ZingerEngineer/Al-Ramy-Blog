@@ -8,7 +8,7 @@ user default on nopass ~* &* +@all
 
 user ${REDIS_USER} on >${REDIS_PASSWORD} ~* resetchannels -@all +get +set +del +mget +mset +exists +ttl +expire +keys +scan
 
-user ${REDIS_TESTER} on >${REDIS_TESTER_PASSWORD} ~* resetchannels -@all +ping
+user ${REDIS_TESTER} on >${REDIS_TESTER_PASSWORD} ~* resetchannels -@all +ping +exists +get +ttl
 EOF
 
 chmod 644 "$ACL_FILE"
