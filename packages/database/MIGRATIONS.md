@@ -298,7 +298,7 @@ pnpm dev:postgres:backup
 
 ```bash
 # 1. Reset dev database
-pnpm dev:docker:reset
+pnpm podman:reset
 
 # 2. Apply migrations
 pnpm db:migrate
@@ -391,7 +391,7 @@ If your migration history diverges from the database:
 
 ```bash
 # Reset database (DEVELOPMENT ONLY)
-pnpm dev:docker:reset
+pnpm podman:reset
 pnpm db:migrate
 
 # For production, use:
@@ -459,7 +459,7 @@ pnpm db:migrate
 ### Option 3: Reset and Replay (Development Only)
 
 ```bash
-pnpm dev:docker:reset
+pnpm podman:reset
 pnpm db:migrate
 pnpm db:seed
 ```
@@ -480,10 +480,10 @@ pnpm db:seed
     npx prisma generate
 ```
 
-### Docker Deployment
+### Container Deployment (Podman/Docker)
 
 ```dockerfile
-# In your Dockerfile
+# In your Containerfile/Dockerfile
 RUN npx prisma generate
 CMD ["sh", "-c", "npx prisma migrate deploy && node dist/index.js"]
 ```
@@ -522,5 +522,5 @@ CMD ["sh", "-c", "npx prisma migrate deploy && node dist/index.js"]
 
 - Check Prisma logs: `npx prisma migrate status`
 - View schema diff: `npx prisma migrate diff`
-- Reset development database: `pnpm dev:docker:reset`
+- Reset development database: `pnpm podman:reset`
 - Join Prisma Discord: [https://pris.ly/discord](https://pris.ly/discord)

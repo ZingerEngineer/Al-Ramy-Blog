@@ -1,3 +1,4 @@
+import { requireEnv, requireEnvNumber } from '@workspace/utilities/env';
 import Redis from 'ioredis';
 import type { RedisConfig } from './types';
 
@@ -6,12 +7,7 @@ let ramyClient: Redis | null = null;
 
 function getRedisPort(configPort?: number): number {
   if (configPort !== undefined) return configPort;
-  const envPort = process.env.REDIS_PORT;
-  if (envPort) {
-    const parsed = parseInt(envPort, 10);
-    if (!Number.isNaN(parsed)) return parsed;
-  }
-  return 6379;
+  return requireEnvNumber('REDIS_PORT') as number;
 }
 
 /**
@@ -20,11 +16,15 @@ function getRedisPort(configPort?: number): number {
  */
 export function getTesterClient(config?: Partial<RedisConfig>): Redis {
   if (!testerClient) {
+    const host = config?.host ?? requireEnv('REDIS_HOST');
+    const username = config?.username ?? requireEnv('REDIS_TESTER');
+    const password = config?.password ?? requireEnv('REDIS_TESTER_PASSWORD');
+
     testerClient = new Redis({
-      host: config?.host ?? process.env.REDIS_HOST,
+      host,
       port: getRedisPort(config?.port),
-      username: config?.username ?? process.env.REDIS_TESTER,
-      password: config?.password ?? process.env.REDIS_TESTER_PASSWORD,
+      username,
+      password,
       lazyConnect: true,
       maxRetriesPerRequest: 3,
       retryStrategy: (times) => {
@@ -42,11 +42,15 @@ export function getTesterClient(config?: Partial<RedisConfig>): Redis {
  */
 export function getRamyClient(config?: Partial<RedisConfig>): Redis {
   if (!ramyClient) {
+    const host = config?.host ?? requireEnv('REDIS_HOST');
+    const username = config?.username ?? requireEnv('REDIS_USER');
+    const password = config?.password ?? requireEnv('REDIS_PASSWORD');
+
     ramyClient = new Redis({
-      host: config?.host ?? process.env.REDIS_HOST,
+      host,
       port: getRedisPort(config?.port),
-      username: config?.username ?? process.env.REDIS_USER,
-      password: config?.password ?? process.env.REDIS_PASSWORD,
+      username,
+      password,
       lazyConnect: true,
       maxRetriesPerRequest: 3,
       retryStrategy: (times) => {

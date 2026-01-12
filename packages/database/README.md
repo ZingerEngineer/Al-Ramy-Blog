@@ -14,7 +14,7 @@ This package provides a fully-featured database layer with 15 models covering au
 - **8 Enums** for type safety
 - **Zod Schema Generation** for runtime validation
 - **Comprehensive Seeding** with realistic test data
-- **Docker Development Environment** (PostgreSQL + Redis + LocalStack S3)
+- **Podman Development Environment** (PostgreSQL + Redis + LocalStack S3)
 - **Full Audit Logging** system
 
 ## Installation
@@ -52,18 +52,18 @@ LOCALSTACK_SERVICES=s3
 LOCALSTACK_DEBUG=1
 ```
 
-### 2. Start Docker Services
+### 2. Start Podman Services
 
 Start PostgreSQL, Redis, and LocalStack:
 
 ```bash
-pnpm dev:docker:up
+pnpm podman:up
 ```
 
 Check service status:
 
 ```bash
-pnpm dev:docker:status
+pnpm podman:status
 ```
 
 ### 3. Run Migrations
@@ -296,32 +296,35 @@ pnpm db:seed
 pnpm db:studio
 ```
 
-### Docker Services
+### Podman Services
 
 ```bash
-# Start all services
-pnpm dev:docker:up
+# Start all services (creates pod if needed)
+pnpm podman:up
 
-# Stop all services
-pnpm dev:docker:down
+# Stop services (preserves containers)
+pnpm podman:stop
 
-# Reset all data and restart
-pnpm dev:docker:reset
+# Remove containers (preserves volumes)
+pnpm podman:down
 
-# View logs
-pnpm dev:docker:logs
-pnpm dev:docker:logs:postgres
-pnpm dev:docker:logs:redis
-pnpm dev:docker:logs:localstack
+# Reset all data and restart (⚠️ DESTRUCTIVE)
+pnpm podman:reset
 
 # Restart services
-pnpm dev:docker:restart
-pnpm dev:docker:restart:postgres
-pnpm dev:docker:restart:redis
+pnpm podman:restart
 
 # Check service status
-pnpm dev:docker:status
+pnpm podman:status
+
+# View logs
+pnpm podman:logs                  # All containers
+pnpm podman:logs:postgres         # PostgreSQL only
+pnpm podman:logs:redis            # Redis only
+pnpm podman:logs:localstack       # LocalStack only
 ```
+
+**Note**: Uses native Podman pods. See `scripts/README.md` for detailed documentation.
 
 ### Redis Utilities
 
@@ -499,12 +502,12 @@ The schema includes comprehensive indexes for performance:
 
 ```bash
 # Reset database and migrations
-pnpm dev:docker:reset
+pnpm podman:reset
 pnpm db:migrate
 
 # Or manually
-docker compose down -v
-docker compose up -d
+podman-compose down -v
+podman-compose up -d
 pnpm db:migrate
 ```
 

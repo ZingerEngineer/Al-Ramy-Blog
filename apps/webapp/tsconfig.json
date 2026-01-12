@@ -6,6 +6,8 @@
         "name": "next"
       }
     ],
+    "declaration": false,
+    "declarationMap": false,
     "baseUrl": ".",
     "paths": {
       "@/*": ["./*"],
@@ -23,6 +25,13 @@
       "@workspace/tailwind": ["../../packages/tailwind"]
     }
   },
-  "include": ["next-env.d.ts", "next.config.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": [
+    "next-env.d.ts",
+    "next.config.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "types/**/*.d.ts"
+  ],
   "exclude": ["node_modules"]
 }
