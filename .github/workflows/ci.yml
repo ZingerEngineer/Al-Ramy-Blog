@@ -94,4 +94,22 @@ jobs:
         run: pnpm run db:generate
 
       - name: Build all packages and apps
+        env:
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+
+          BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
+          BETTER_AUTH_URL: ${{ secrets.BETTER_AUTH_URL }}
+
+          # OAuth Providers (add your credentials from each provider's developer console)
+          AUTH_GITHUB_ID: ${{ secrets.AUTH_GITHUB_ID }}
+          AUTH_GITHUB_SECRET: ${{ secrets.AUTH_GITHUB_SECRET }}
+
+          AUTH_GOOGLE_ID: ${{ secrets.AUTH_GOOGLE_ID }}
+          AUTH_GOOGLE_SECRET: ${{ secrets.AUTH_GOOGLE_SECRET }}
+
+          AUTH_TWITTER_ID: ${{ secrets.AUTH_TWITTER_ID }}
+          AUTH_TWITTER_SECRET: ${{ secrets.AUTH_TWITTER_SECRET }}
+
+          AUTH_LINKEDIN_ID: ${{ secrets.AUTH_LINKEDIN_ID }}
+          AUTH_LINKEDIN_SECRET: ${{ secrets.AUTH_LINKEDIN_SECRET }}
         run: pnpm run build
