@@ -99,6 +99,7 @@ jobs:
 
           BETTER_AUTH_SECRET: ${{ secrets.BETTER_AUTH_SECRET }}
           BETTER_AUTH_URL: ${{ secrets.BETTER_AUTH_URL }}
+          NEXT_PUBLIC_APP_URL: ${{ secrets.NEXT_PUBLIC_APP_URL }}
 
           # OAuth Providers (add your credentials from each provider's developer console)
           AUTH_GITHUB_ID: ${{ secrets.AUTH_GITHUB_ID }}
