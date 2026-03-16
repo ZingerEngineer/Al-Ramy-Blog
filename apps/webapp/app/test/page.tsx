@@ -1,6 +1,7 @@
 import { DatabaseTestCard } from './components/database-test-card';
 import { RedisTestCard } from './components/redis-test-card';
 import { S3TestCard } from './components/s3-test-card';
+import { SESTestCard } from './components/ses-test-card';
 
 export const metadata = {
   title: 'Service Tests | Al-Ramy Blog',
@@ -14,14 +15,16 @@ export default function TestPage() {
         <div className="mb-8">
           <h1 className="text-3xl font-bold tracking-tight">Container Services Test</h1>
           <p className="text-muted-foreground mt-2">
-            Test connectivity and functionality of PostgreSQL, Redis, and LocalStack S3 services.
+            Test connectivity and functionality of PostgreSQL, Redis, LocalStack S3, and LocalStack
+            SES services.
           </p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           <DatabaseTestCard />
           <RedisTestCard />
           <S3TestCard />
+          <SESTestCard />
         </div>
       </div>
     </main>
