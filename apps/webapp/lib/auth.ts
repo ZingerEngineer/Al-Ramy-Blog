@@ -1,17 +1,27 @@
 import { prisma } from '@workspace/database';
+import { sendPasswordResetEmail, sendVerificationEmail } from '@workspace/services/email';
 import { requireEnv, requireEnvGroup, requireEnvOneOf } from '@workspace/utilities/env';
 import bcrypt from 'bcryptjs';
 import { betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { nextCookies } from 'better-auth/next-js';
+import { authLogger } from './logger';
 
 // Validate required environment variables
 const betterAuthSecret = requireEnv('BETTER_AUTH_SECRET');
 
-const googleCreds = requireEnvGroup(['AUTH_GOOGLE_ID', 'AUTH_GOOGLE_SECRET']);
-const githubCreds = requireEnvGroup(['AUTH_GITHUB_ID', 'AUTH_GITHUB_SECRET']);
-const twitterCreds = requireEnvGroup(['AUTH_TWITTER_ID', 'AUTH_TWITTER_SECRET']);
-const linkedinCreds = requireEnvGroup(['AUTH_LINKEDIN_ID', 'AUTH_LINKEDIN_SECRET']);
+const googleCredentials = requireEnvGroup(['AUTH_GOOGLE_ID', 'AUTH_GOOGLE_SECRET'], {
+  optional: true,
+});
+const githubCredentials = requireEnvGroup(['AUTH_GITHUB_ID', 'AUTH_GITHUB_SECRET'], {
+  optional: true,
+});
+const twitterCredentials = requireEnvGroup(['AUTH_TWITTER_ID', 'AUTH_TWITTER_SECRET'], {
+  optional: true,
+});
+const linkedinCredentials = requireEnvGroup(['AUTH_LINKEDIN_ID', 'AUTH_LINKEDIN_SECRET'], {
+  optional: true,
+});
 
 const baseURL = requireEnvOneOf(['BETTER_AUTH_URL', 'AUTH_URL']);
 
@@ -22,13 +32,29 @@ export const auth = betterAuth({
   database: prismaAdapter(prisma, {
     provider: 'postgresql',
   }),
-
+  emailVerification: {
+    sendVerificationEmail: async ({ user, url }) => {
+      try {
+        await sendVerificationEmail({
+          userName: user.name,
+          verificationUrl: url,
+          to: user.email,
+        });
+      } catch (error) {
+        authLogger.error(
+          { email: user.email, err: error },
+          'Error in sendVerificationEmail callback',
+        );
+      }
+    },
+  },
   // Enable email/password authentication
   emailAndPassword: {
     enabled: true,
-    requireEmailVerification: false,
+    requireEmailVerification: true,
     minPasswordLength: 8,
     maxPasswordLength: 128,
+    resetPasswordTokenExpiresIn: 3600, // 1 hour
     // Use bcrypt for compatibility with existing passwords
     password: {
       hash: async (password) => {
@@ -38,26 +64,50 @@ export const auth = betterAuth({
         return await bcrypt.compare(password, hash);
       },
     },
+    // Send password reset email
+    sendResetPassword: async ({ user, url }) => {
+      try {
+        await sendPasswordResetEmail({
+          to: user.email,
+          resetUrl: url,
+          userName: user.name,
+        });
+      } catch (err) {
+        authLogger.error({ email: user.email, err }, 'Error in sendResetPassword callback');
+      }
+    },
   },
 
-  // Social providers
+  // Social providers (only include if credentials are available)
   socialProviders: {
-    google: {
-      clientId: googleCreds.AUTH_GOOGLE_ID as string,
-      clientSecret: googleCreds.AUTH_GOOGLE_SECRET as string,
-    },
-    github: {
-      clientId: githubCreds.AUTH_GITHUB_ID as string,
-      clientSecret: githubCreds.AUTH_GITHUB_SECRET as string,
-    },
-    twitter: {
-      clientId: twitterCreds.AUTH_TWITTER_ID as string,
-      clientSecret: twitterCreds.AUTH_TWITTER_SECRET as string,
-    },
-    linkedin: {
-      clientId: linkedinCreds.AUTH_LINKEDIN_ID as string,
-      clientSecret: linkedinCreds.AUTH_LINKEDIN_SECRET as string,
-    },
+    ...(googleCredentials.AUTH_GOOGLE_ID &&
+      googleCredentials.AUTH_GOOGLE_SECRET && {
+        google: {
+          clientId: googleCredentials.AUTH_GOOGLE_ID,
+          clientSecret: googleCredentials.AUTH_GOOGLE_SECRET,
+        },
+      }),
+    ...(githubCredentials.AUTH_GITHUB_ID &&
+      githubCredentials.AUTH_GITHUB_SECRET && {
+        github: {
+          clientId: githubCredentials.AUTH_GITHUB_ID,
+          clientSecret: githubCredentials.AUTH_GITHUB_SECRET,
+        },
+      }),
+    ...(twitterCredentials.AUTH_TWITTER_ID &&
+      twitterCredentials.AUTH_TWITTER_SECRET && {
+        twitter: {
+          clientId: twitterCredentials.AUTH_TWITTER_ID,
+          clientSecret: twitterCredentials.AUTH_TWITTER_SECRET,
+        },
+      }),
+    ...(linkedinCredentials.AUTH_LINKEDIN_ID &&
+      linkedinCredentials.AUTH_LINKEDIN_SECRET && {
+        linkedin: {
+          clientId: linkedinCredentials.AUTH_LINKEDIN_ID,
+          clientSecret: linkedinCredentials.AUTH_LINKEDIN_SECRET,
+        },
+      }),
   },
 
   // Session configuration

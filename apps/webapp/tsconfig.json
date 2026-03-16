@@ -20,7 +20,7 @@
       "@/types/*": ["./types/*"],
       "@workspace/database": ["../../packages/database/src"],
       "@workspace/services": ["../../packages/services/src"],
-      "@workspace/services/*": ["../../packages/services/src/*"],
+      "@workspace/utilities": ["../../packages/utilities/src"],
       "@workspace/ui/*": ["../../packages/ui/src/*"],
       "@workspace/tailwind": ["../../packages/tailwind"]
     }

@@ -24,7 +24,7 @@ Created `/turbo.json` with the following tasks:
 
 ### 3. Next.js Upgrade
 - **webapp**: 16.0.7 → 16.1.1
-- **admin_dashboard**: 16.0.7 → 16.1.1
+- **adminapp**: 16.0.7 → 16.1.1
 
 ### 4. Turbopack Configuration Standardization
 Migrated webapp from deprecated `experimental.turbo` to stable `turbopack` configuration (Next.js 16 standard).
@@ -54,7 +54,7 @@ pnpm dev
 
 # Start specific app
 pnpm dev:webapp
-pnpm dev:admin_dashboard
+pnpm dev:adminapp
 
 # Build all apps (with caching)
 pnpm build

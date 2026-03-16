@@ -34,6 +34,8 @@ export async function registerUser(
 
   authLogger.info({ email, name }, 'Registration attempt started');
 
+  let registered = false;
+
   try {
     // Use Better Auth server-side API for registration
     const response = await auth.api.signUpEmail({
@@ -53,11 +55,7 @@ export async function registerUser(
     }
 
     authLogger.info({ email, userId: response.user?.id }, 'User registered successfully');
-
-    return {
-      success: true,
-      message: 'Account created successfully! You can now sign in.',
-    };
+    registered = true;
   } catch (error) {
     // Check for duplicate email error
     if (error instanceof Error && error.message.includes('already exists')) {
@@ -77,6 +75,13 @@ export async function registerUser(
       message: 'Something went wrong. Please try again.',
     };
   }
+
+  // Outside try/catch — redirect() throws internally and must not be caught
+  if (registered) {
+    redirect(`/check-email?email=${encodeURIComponent(email)}`);
+  }
+
+  return { success: false, message: 'Registration failed' };
 }
 
 export async function signInWithCredentials(
