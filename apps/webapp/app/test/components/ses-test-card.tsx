@@ -20,6 +20,7 @@ export function SESTestCard() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'connected' | 'error'>('idle');
   const [result, setResult] = useState<SESTestResult | null>(null);
   const [emailTo, setEmailTo] = useState('test@example.com');
+  const isLoading = status === 'loading';
   const [emailSubject, setEmailSubject] = useState('Test Email from LocalStack SES');
   const [emailBody, setEmailBody] = useState(
     'This is a test email to verify LocalStack SES is working correctly!',
@@ -221,11 +222,11 @@ export function SESTestCard() {
       </CardContent>
 
       <CardFooter className="gap-2">
-        <Button onClick={handleTestConnection} disabled={status === 'loading'}>
+        <Button onClick={handleTestConnection} disabled={isLoading}>
           Test Connection
         </Button>
         {status === 'connected' && (
-          <Button variant="outline" onClick={handleTestConnection} disabled={status === 'loading'}>
+          <Button variant="outline" onClick={handleTestConnection} disabled={isLoading}>
             Refresh
           </Button>
         )}
