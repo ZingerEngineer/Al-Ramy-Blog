@@ -1,0 +1,37 @@
+{
+  "extends": "@workspace/typescript/nextjs.json",
+  "compilerOptions": {
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "declaration": false,
+    "declarationMap": false,
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"],
+      "@/components/*": ["./components/*"],
+      "@/hooks/*": ["./hooks/*"],
+      "@/lib/*": ["./lib/*"],
+      "@/styles/*": ["./styles/*"],
+      "@/config/*": ["./config/*"],
+      "@/types": ["./types"],
+      "@/types/*": ["./types/*"],
+      "@workspace/database": ["../../packages/database/src"],
+      "@workspace/services": ["../../packages/services/src"],
+      "@workspace/services/*": ["../../packages/services/src/*"],
+      "@workspace/ui/*": ["../../packages/ui/src/*"],
+      "@workspace/tailwind": ["../../packages/tailwind"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "next.config.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    "types/**/*.d.ts"
+  ],
+  "exclude": ["node_modules"]
+}
