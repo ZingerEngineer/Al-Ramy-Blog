@@ -98,15 +98,17 @@ podman run -d \
     --pod "$POD_NAME" \
     --name "$LOCALSTACK_CONTAINER" \
     --restart unless-stopped \
-    -e SERVICES="${LOCALSTACK_SERVICES:-s3}" \
+    -e SERVICES="${LOCALSTACK_SERVICES:-s3,ses}" \
     -e DEBUG="${LOCALSTACK_DEBUG:-0}" \
     -e DATA_DIR=/var/lib/localstack \
     -e HOSTNAME=localstack \
     -e AWS_ACCESS_KEY_ID="${AWS_ACCESS_KEY_ID}" \
     -e AWS_SECRET_ACCESS_KEY="${AWS_SECRET_ACCESS_KEY}" \
     -e AWS_DEFAULT_REGION="${AWS_DEFAULT_REGION}" \
+    -e EMAIL_FROM="${EMAIL_FROM}" \
     -v alramy-blog-localstack-data:/var/lib/localstack:Z \
     -v "${PROJECT_ROOT}/.localstack/init-s3-dev.py:/etc/localstack/init/ready.d/init-s3-dev.py:ro,Z" \
+    -v "${PROJECT_ROOT}/.localstack/init-ses-dev.py:/etc/localstack/init/ready.d/init-ses-dev.py:ro,Z" \
     --health-cmd "curl -f http://localhost:4566/_localstack/health" \
     --health-interval 10s \
     --health-timeout 5s \
