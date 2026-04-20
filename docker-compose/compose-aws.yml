@@ -1,0 +1,26 @@
+services:
+  localstack:
+    image: localstack/localstack:latest
+    container_name: alramy-blog-localstack-dev
+    restart: unless-stopped
+    env_file: .env.compose
+    environment:
+      SERVICES: ${LOCALSTACK_SERVICES:-s3,ses}
+      DEBUG: ${LOCALSTACK_DEBUG:-0}
+      DATA_DIR: /var/lib/localstack
+      HOSTNAME: localstack
+    ports:
+      - "4566:4566"
+      - "4510-4559:4510-4559"
+    volumes:
+      - alramy-blog-localstack-data:/var/lib/localstack
+      - ../.localstack/init-s3-dev.py:/etc/localstack/init/ready.d/init-s3-dev.py:ro
+      - ../.localstack/init-ses-dev.py:/etc/localstack/init/ready.d/init-ses-dev.py:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:4566/_localstack/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  alramy-blog-localstack-data:

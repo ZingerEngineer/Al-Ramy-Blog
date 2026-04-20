@@ -29,6 +29,16 @@
     "podman:logs:postgres": "./.podman/podman-logs.sh postgres",
     "podman:logs:redis": "./.podman/podman-logs.sh redis",
     "podman:logs:localstack": "./.podman/podman-logs.sh localstack",
+    "docker:up": "docker compose --project-directory docker-compose up -d",
+    "docker:down": "docker compose --project-directory docker-compose down",
+    "docker:stop": "docker compose --project-directory docker-compose stop",
+    "docker:restart": "docker compose --project-directory docker-compose restart",
+    "docker:reset": "docker compose --project-directory docker-compose down -v && docker compose --project-directory docker-compose up -d",
+    "docker:status": "docker compose --project-directory docker-compose ps",
+    "docker:logs": "docker compose --project-directory docker-compose logs -f",
+    "docker:logs:db": "docker compose --project-directory docker-compose logs -f db",
+    "docker:logs:cache": "docker compose --project-directory docker-compose logs -f cache",
+    "docker:logs:localstack": "docker compose --project-directory docker-compose logs -f localstack",
     "prepare": "husky"
   },
   "devDependencies": {

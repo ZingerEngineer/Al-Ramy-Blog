@@ -1,0 +1,20 @@
+services:
+  cache:
+    image: redis:7.2-alpine
+    container_name: alramy-blog-redis-dev
+    restart: unless-stopped
+    env_file: .env.compose
+    ports:
+      - "6379:6379"
+    volumes:
+      - alramy-blog-redis-data:/data
+      - ../.redis/redis-init.sh:/usr/local/bin/redis-init.sh:ro
+    command: sh /usr/local/bin/redis-init.sh
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  alramy-blog-redis-data:

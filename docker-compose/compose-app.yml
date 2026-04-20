@@ -1,0 +1,17 @@
+# =============================================================================
+# App Stack — Reserved for future containerization
+# =============================================================================
+# This file will hold webapp and adminapp service definitions when the apps
+# are containerized. For now, apps run on the host via `pnpm dev`.
+#
+# Future services will depend on infra stacks:
+#   depends_on:
+#     db:
+#       condition: service_healthy
+#     cache:
+#       condition: service_healthy
+#     localstack:
+#       condition: service_healthy
+# =============================================================================
+
+services: {}

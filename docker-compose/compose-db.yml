@@ -1,0 +1,18 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: alramy-blog-postgres-dev
+    restart: unless-stopped
+    env_file: .env.compose
+    ports:
+      - "5432:5432"
+    volumes:
+      - alramy-blog-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $$POSTGRES_DB -U $$POSTGRES_USER"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  alramy-blog-postgres-data:

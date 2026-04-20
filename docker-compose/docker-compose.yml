@@ -1,0 +1,23 @@
+# =============================================================================
+# Al-Ramy Blog — Development Infrastructure
+# =============================================================================
+# Aggregates all stack files into a single entrypoint.
+#
+# Usage:
+#   docker compose up -d          # Start all infra
+#   docker compose up -d db       # Start only PostgreSQL
+#   docker compose ps             # Check status
+#   docker compose down           # Stop & remove containers (keeps volumes)
+#   docker compose down -v        # Stop & remove containers + volumes
+#
+# Individual stacks can also be used directly:
+#   docker compose -f compose-db.yml up -d
+#   docker compose -f compose-cache.yml up -d
+#   docker compose -f compose-aws.yml up -d
+# =============================================================================
+
+include:
+  - compose-db.yml
+  - compose-cache.yml
+  - compose-aws.yml
+  - compose-app.yml

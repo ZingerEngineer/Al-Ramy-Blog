@@ -8,7 +8,6 @@
     ],
     "declaration": false,
     "declarationMap": false,
-    "baseUrl": ".",
     "paths": {
       "@/*": ["./*"],
       "@/components/*": ["./components/*"],
